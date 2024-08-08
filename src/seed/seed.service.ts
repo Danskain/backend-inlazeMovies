@@ -19,15 +19,15 @@ export class SeedService {
 
   async runSeed() {
 
-    //await this.deleteTables();
+    ////await this.deleteTables();
     const adminUser = await this.insertUsers();
 
     //await this.insertNewProducts( adminUser );
 
     return 'SEED EXECUTED';
   }
-/* 
-  private async deleteTables() {
+
+  /* private async deleteTables() {
 
     await this.moviesService.deleteAllProducts();
 

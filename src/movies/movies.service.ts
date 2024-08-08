@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Movie } from './entities/movie.entity';
 import { PaginationDto } from 'src/common/dtos/pagination.dto';
 import { validate as isUUID } from 'uuid';
+import { User } from 'src/auth/entities/user.entity';
 
 
 @Injectable()
@@ -19,10 +20,14 @@ export class MoviesService {
     private readonly movieRepository: Repository<Movie>
   ){}
 
-  async create(createMovieDto: CreateMovieDto) {
+  async create(createMovieDto: CreateMovieDto, user: User) {
 
     try {
-      const movie = this.movieRepository.create(createMovieDto)
+      const movie = this.movieRepository.create({
+        ...createMovieDto,
+        user
+      })
+      //movie.user = user
       await this.movieRepository.save(movie)
 
       return movie
@@ -38,10 +43,10 @@ export class MoviesService {
     return this.movieRepository.find({});
   }
 
-  async findAllFavorites(paginationDto: PaginationDto) {
+  async findAllFavorites(paginationDto: PaginationDto, user: User) {
     const { limit = 10, offset = 0, } = paginationDto;
     const movie = await this.movieRepository.createQueryBuilder('movie')
-    .where('movie.favorite = :favorite', { favorite: '1' })
+    .where('movie.favorite = :favorite and movie.userId = :userId', { favorite: '1', userId: user })
     .skip(offset)
     .take(limit)
     .getManyAndCount();
@@ -53,10 +58,10 @@ export class MoviesService {
     return movie
   }
 
-  async update(id: string, updateMovieDto: UpdateMovieDto) {
+  async update(id: string, updateMovieDto: UpdateMovieDto, user: User) {
 
     const movie = await this.movieRepository.preload({
-      id: id,
+      id: id,  
       ...updateMovieDto
     })
 
@@ -66,6 +71,7 @@ export class MoviesService {
 
     
     try {
+      movie.user = user
       await this.movieRepository.save(movie);
       return movie
       
